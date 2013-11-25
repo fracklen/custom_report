@@ -1,0 +1,34 @@
+css:
+  textarea.columns {
+    border: 1px solid #999999;
+    font-family: Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+  }
+
+= form_for @report, :role => "form" do |f|
+  = hidden_field_tag "return_path", @return_path
+  div.form-group
+    = f.label :name
+    = f.text_field :name, :class => "form-control"
+  - if defined?(Administrator) and Administrator.is_a?(ActiveRecord::Base)
+    div.form-group
+      = f.label :administrator_id, "Administrator"
+      = f.select :administrator_id, options_for_select([["Everybody", nil]] + Administrator.all.map { |x| [x.name, x.id] }, f.object.new_record? ? current_admin.id : f.object.administrator_id), :class => "form-control"
+  div.form-group
+    = f.label :category
+    = f.text_field :category
+  div.form-group
+    = f.label :description
+    = f.text_area :description, :rows => 5
+  div.form-group
+    = f.label :scope
+    = f.text_field :scope, :size => 110
+  div.form-group
+    = f.label :columns_yaml, "Columns"
+    = f.text_area :columns_yaml, :class => "columns", :cols => 80
+  = f.submit "Save report", :class => "btn btn-default"
+  h3 Advanced
+  div.form-group
+    = f.label :has_checklist
+    = f.check_box(:has_checklist,{}, true, false)
+
+  = f.submit "Save report", :class => "btn btn-default"

@@ -1,0 +1,50 @@
+<h2><%= @report.name %></h2>
+<p>
+  <%= link_to "Edit this report", edit_report_path(@report, :return_path => request.fullpath) %>
+</p>
+<p>
+  <%= (@report.description || "").gsub("\n", "<br>").html_safe %>
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <% @columns.each do |column| %>
+        <th><%= h column[:name] %></th>
+      <% end %>
+      <% if @report.has_checklist %>
+        <th>
+          <%= link_to "Uncheck all", remove_all_check_items_admin_custom_admin_report_path, :method => :post, :remote => true  %>
+        </th>
+      <% end %>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @results.each do |entity| %>
+      <tr class="<%= cycle('even', 'odd') %>">
+        <% @columns.each_with_index do |column, index| %>
+          <td>
+            <%= format_column(entity, column, index).html_safe %>
+          </td>
+        <% end %>
+
+        <% if @report.has_checklist %>
+          <td>
+            <%= form_tag toggle_check_item_custom_report_path, :method => :post, :remote => true  do %>
+              <%= check_box_tag :item_id, entity[0], @check_items.has_key?(entity[0]) && !@check_items[entity[0]].empty?, :onchange => "$(this).submit();", :class => "check_item" %>
+            <% end %>
+          </td>
+        <% end %>
+      </tr>
+    <% end %>
+  <tbody>
+</table>
+
+<%= will_paginate @iterator if @iterator.respond_to?(:total_pages) %>
+
+<!--
+<p>
+  <%#= link_to "[Download CSV]", request.path + ".csv" + "?#{request.query_string}" %>
+</p>
+-->
