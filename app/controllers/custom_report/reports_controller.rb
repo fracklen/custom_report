@@ -1,5 +1,18 @@
 module CustomReport
   class ReportsController < ::ApplicationController
+    layout CustomReport.layout
+
+    if CustomReport.includes
+      Array(CustomReport.includes).each do |inc|
+        include inc
+      end
+    end
+
+    if CustomReport.before_filters
+      Array(CustomReport.before_filters).each do |filter|
+        before_filter filter
+      end
+    end
 
     def index
       @custom_reports = custom_reports
@@ -68,7 +81,7 @@ module CustomReport
 
     def update
       set_return_path
-      if custom_report.update_attributes({"has_checklist" => "false"}.merge(params[:custom_report]))
+      if custom_report.update_attributes({"has_checklist" => "false"}.merge(params[:report]).merge(:administrator_type => CustomReport.admin_class))
         redirect_to @return_path
       else
         render "edit"
@@ -109,18 +122,21 @@ module CustomReport
     def custom_report
       if params[:id]
         CustomReport::Report.includes(:report_check_items).find params[:id]
-      elsif params[:custom_report]
-        CustomReport::Report.new(params[:custom_report])
+      elsif params[:report]
+        CustomReport::Report.new(params[:report])
       else
         CustomReport::Report.new(:name => "Custom Report", :columns => [["Column 1", "some_method"], ["Column 2", "some_other_method"]])
       end
     end
 
     def toggle_check_item
-      @item = CustomReport::ReportCheckItem.where(:custom_report_id => params[:id], :item_id => params[:item_id]).first
+      @item = CustomReport::ReportCheckItem.where(:report_id => params[:id], :item_id => params[:item_id]).first
 
       unless @item
-        @item = CustomReport::ReportCheckItem.create(:custom_report_id => params[:id], :item_id => params[:item_id])
+        @item = CustomReport::ReportCheckItem.new
+        @item.report_id = params[:id]
+        @item.item_id = params[:item_id]
+        @item.save!
       else
         @item.destroy
       end
@@ -128,20 +144,20 @@ module CustomReport
     end
 
     def remove_all_check_items
-      CustomReport::ReportCheckItem.where(:custom_report_id => params[:id]).delete_all
+      CustomReport::ReportCheckItem.where(:report_id => params[:id]).delete_all
 
       render :js => "$('.check_item').attr('checked',false);"
     end
 
     def destroy
       custom_report.update_column(:deleted_at, Time.current)
-      redirect_to custom_reports_path
+      redirect_to reports_path
     end
 
     private
 
     def set_return_path
-      @return_path = params[:return_path] || custom_reports_path
+      @return_path = params[:return_path] || reports_path
     end
 
     def my_object
@@ -175,5 +191,21 @@ module CustomReport
 
       render :layout => false, :inline => text
     end
+
+    def method_missing(name, *args, &block)
+      main_app.send(name, *args, &block)
+    end
+    helper_method :method_missing
+
+    def administrator_class
+      if CustomReport.admin_class
+        CustomReport.admin_class.constantize
+      else
+        nil
+      end
+    end
+    helper_method :administrator_class
   end
+
+
 end

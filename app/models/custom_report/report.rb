@@ -5,6 +5,8 @@ module CustomReport
 
     validates_presence_of :name
 
+    validate :unharmful
+
     serialize :columns
 
     attr_accessor :iterator
@@ -13,28 +15,38 @@ module CustomReport
       result = []
       ActiveRecord::Base.transaction do
         # Create the scope
-        @iterator = eval(self.scope)
+        begin
+          @iterator = eval(self.scope) unless self.scope.include?("destroy")
 
-        unless options[:dont_paginate]
-          @iterator = @iterator.paginate :page => options[:page], :per_page => (options[:per_page] || 20)
-        end
+          unless options[:dont_paginate]
+            @iterator = @iterator.paginate :page => options[:page], :per_page => (options[:per_page] || 20)
+          end
 
-        # Return an array of hashes
-        result = @iterator.map do |entity|
-          self.columns.map do |column|
-            accessor = column[1]
-            if column[2] == "eval"
-              entity.instance_eval(accessor)
-            else
-              accessor.split(".").inject(entity) { |current_entity, method| current_entity.try(method.to_sym) }
+          # Return an array of hashes
+          result = @iterator.map do |entity|
+            self.columns.map do |column|
+              evaluate(entity, column)
             end
           end
-        end
 
-        # Always roll back
-        raise ActiveRecord::Rollback
+        ensure
+          # Always roll back
+          raise ActiveRecord::Rollback
+        end
       end
       result
+    end
+
+    def evaluate(entity, column)
+      accessor = if column.is_a?(Hash) and column.size == 1
+        column.values.first
+      else
+        column[1]
+      end
+
+      unless accessor.include?("destroy")
+        entity.instance_eval(accessor)
+      end
     end
 
     def columns_yaml=(values)
@@ -47,7 +59,17 @@ module CustomReport
 
     def columns_hash
       columns.map do |c|
-        { :name => c[0], :format => c[2] }
+        if c.is_a?(Array)
+          { :name => c[0], :format => c[2] }
+        else
+          { :name => c.keys.first, :format => nil }
+        end
+      end
+    end
+
+    def unharmful
+      if scope.include?(".destroy")
+        errors.add(:scope, 'Scope cannot destroy - unsafe!')
       end
     end
 

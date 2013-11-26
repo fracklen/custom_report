@@ -1,0 +1,41 @@
+css:
+  form {
+    margin: 0;
+  }
+
+h1
+  = @report.name
+p
+  = link_to "Edit this report", edit_report_path(@report, :return_path => request.fullpath), :class => "btn btn-primary"
+  = " "
+  = link_to "List Reports", reports_path, :class => "btn btn-default"
+p
+  = (@report.description || "").gsub("\n", "<br>").html_safe
+
+= will_paginate @iterator if @iterator.respond_to?(:total_pages)
+
+table.table.table-striped.table-condensed
+  thead
+    tr
+      - @columns.each do |column|
+        th = h column[:name]
+      - if @report.has_checklist
+        th
+          = link_to "Uncheck all", remove_all_check_items_report_path, :method => :post, :remote => true
+
+  tbody
+    - @results.each do |entity|
+      tr
+        - @columns.each_with_index do |column, index|
+          td
+            = format_column(entity, column, index).html_safe
+
+        - if @report.has_checklist
+          td
+            = form_tag toggle_check_item_report_path, :method => :post, :remote => true  do
+              = check_box_tag :item_id, entity[0], @check_items.has_key?(entity[0]) && !@check_items[entity[0]].empty?, :onchange => "$(this).submit();", :class => "check_item"
+
+= will_paginate @iterator if @iterator.respond_to?(:total_pages)
+
+p
+  = link_to "[Download CSV]", request.path + ".csv" + "?#{request.query_string}"

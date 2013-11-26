@@ -4,8 +4,8 @@ module CustomReport
 
     belongs_to :report
 
-    validates_presence_of :custom_report_report_id
-    validates_presence_of :custom_item_id
+    validates_presence_of :report_id
+    validates_presence_of :item_id
 
   end
 end

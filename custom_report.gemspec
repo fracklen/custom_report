@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
   s.homepage                  = "http://yourwebsite.com"
   s.summary                   = "Create CustomReports to make quick customized reports."
   s.description               = "Use CustomReports to get a good quick glipse into your application data."
+  s.license		      = "MIT"
 
   s.required_rubygems_version = "> 1.3.6"
 

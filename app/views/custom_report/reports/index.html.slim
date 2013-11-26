@@ -9,10 +9,12 @@ table.table
     th Updated at
     th Last opened
     th
+    th
+    th
 
   - @custom_reports.each do |category, reports|
     tr
-      td colspan="5" style="background-color: #eee; font-weight: bold; border-bottom: 1px solid #ccc;"
+      td colspan="7" style="background-color: #eee; font-weight: bold; border-bottom: 1px solid #ccc;"
         = category.presence || "No category"
     - reports.each do |report|
       tr
@@ -20,14 +22,18 @@ table.table
           = link_to report.name, [report], :style => "color: blue;"
           = " (deleted)" if report.deleted_at.present?
         td
-          = report.administrator.try(:personal_name)
+          = report.administrator.try(:name) || report.administrator.try(:personal_name)
         td
           = l report.updated_at
         td
           = report.last_opened.present? ? l(report.last_opened) : ""
         td
-          = link_to "CSV", report_path(report, :format => :csv), :class => "btn btn-mini"
-          = link_to "Edit", edit_report_path(report), :class => "btn btn-mini"
+          = link_to "CSV", report_path(report, :format => :csv), :class => "btn btn-small"
+        td
+          = link_to "Edit", edit_report_path(report), :class => "btn btn-small"
+        td
           - if report.deleted_at.nil?
-            = link_to "Archive", report_path(report, :return_path => request.path), :method => :delete, :confirm => "Really?", :class => "btn btn-mini btn-warning"
+            = link_to "Archive", report_path(report, :return_path => request.path), :method => :delete, :confirm => "Really?", :class => "btn btn-small btn-warning"
 
+
+= link_to "Show archived", reports_path(:show_archived => true), :class => "btn btn-default"
