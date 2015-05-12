@@ -1,37 +1,29 @@
-css:
-  textarea.columns {
-    border: 1px solid #999999;
-    font-family: Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
-  }
-  textarea {
-    width: 600px;
-  }
-
-= form_for @report, :role => "form" do |f|
+= form_for @report, role: "form" do |f|
   = hidden_field_tag "return_path", @return_path
-  div.form-group
+  .form-group
     = f.label :name
-    = f.text_field :name, :class => "form-control"
+    = f.text_field :name, class: "form-control"
   - if administrator_class
-    div.form-group
+    .form-group
       = f.label :administrator_id, "Administrator"
-      = f.select :administrator_id, options_for_select([["Everybody", nil]] + administrator_class.all.map { |x| [x.name, x.id] }, f.object.new_record? ? nil : f.object.administrator_id), :class => "form-control"
-  div.form-group
+      = f.select :administrator_id, options_for_select([["Everybody", nil]] + administrator_class.all.map { |x| [x.name, x.id] }, f.object.new_record? ? nil : f.object.administrator_id), class: "form-control"
+  .form-group
     = f.label :category
-    = f.text_field :category
-  div.form-group
+    = f.text_field :category, class: "form-control"
+  .form-group
     = f.label :description
-    = f.text_area :description, :rows => 5
-  div.form-group
+    = f.text_area :description, rows: 5, class: 'form-control'
+  .form-group
     = f.label :scope
-    = f.text_area :scope, :size => 110
-  div.form-group
+    = f.text_area :scope, rows: 10, class: 'form-control', style: 'font-family: monospace;'
+  .form-group
     = f.label :columns_yaml, "Columns"
-    = f.text_area :columns_yaml, :class => "columns", :cols => 80
-  = f.submit "Save report", :class => "btn btn-default"
-  h3 Advanced
-  div.form-group
-    = f.label :has_checklist
-    = f.check_box(:has_checklist,{}, true, false)
+    = f.text_area :columns_yaml, class: "columns", rows: 20, class: 'form-control', style: 'font-family: monospace;'
 
-  = f.submit "Save report", :class => "btn btn-default"
+  = f.submit "Save report", class: "btn btn-success"
+
+  h3 Advanced
+  .checkbox
+    = f.label :has_checklist do
+      = f.check_box :has_checklist, {}, true, false
+      | Has checklist

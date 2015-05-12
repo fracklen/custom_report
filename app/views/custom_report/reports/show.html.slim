@@ -1,20 +1,14 @@
-css:
-  form {
-    margin: 0;
-  }
-
 h1
   = @report.name
 p
-  = link_to "Edit this report", edit_report_path(@report, :return_path => request.fullpath), :class => "btn btn-primary"
-  = " "
+  => link_to "Edit this report", edit_report_path(@report, :return_path => request.fullpath), :class => "btn btn-primary"
   = link_to "List Reports", reports_path, :class => "btn btn-default"
 p
   = (@report.description || "").gsub("\n", "<br>").html_safe
 
 = will_paginate @iterator if @iterator.respond_to?(:total_pages)
 
-table.table.table-striped.table-condensed
+table.table.table-bordered.table-striped.table-condensed
   thead
     tr
       - @columns.each do |column|
